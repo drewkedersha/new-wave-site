@@ -61,8 +61,6 @@ export default function HomePage() {
               <a
                 key={link.name}
                 href={link.href}
-                target="_blank"
-                rel="noopener noreferrer"
                 style={{
                   padding: '1rem 1.25rem',
                   borderRadius: '12px',

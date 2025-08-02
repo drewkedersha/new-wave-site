@@ -1,19 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 
 export default function Nav() {
   const [isOpen, setIsOpen] = useState(false);
-
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth > 3000) setIsOpen(false);
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   const toggleMenu = () => setIsOpen(!isOpen);
   const closeMenu = () => setIsOpen(false);
@@ -21,21 +13,32 @@ export default function Nav() {
   return (
     <nav className="nav">
       <Link href="/" className="logo">
-        <Image src="https://i.imgur.com/MvrLXgx.png" alt="The New Wave Logo" width={270} height={32} />
+        <Image
+          src="https://i.imgur.com/MvrLXgx.png"
+          alt="The New Wave Logo"
+          width={270}
+          height={32}
+        />
       </Link>
 
       <div className="hamburger" onClick={toggleMenu}>
-        <span />
-        <span />
-        <span />
+        {!isOpen ? (
+          <div className="lines">
+            <div className="bar" />
+            <div className="bar" />
+            <div className="bar" />
+          </div>
+        ) : (
+          <div className="close">✕</div>
+        )}
       </div>
 
       {isOpen && (
         <div className="dropdown">
           <Link href="/" onClick={closeMenu}>Home</Link>
           <Link href="/articles" onClick={closeMenu}>Articles</Link>
-          <Link href="/contact" onClick={closeMenu}>Contact</Link>
           <Link href="/podcast" onClick={closeMenu}>Podcast</Link>
+          <Link href="/contact" onClick={closeMenu}>Contact</Link>
         </div>
       )}
 
@@ -47,70 +50,51 @@ export default function Nav() {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding: .7rem 2rem;
-          background: rgba(0, 0, 0, 0.4);
+          padding: 0.75rem 2rem;
+          background: rgba(0, 0, 0, 0.5);
           backdrop-filter: blur(10px);
         }
 
-        .logo :global(img) {
-          height: 32px;
-        }
-
-        .links {
-          display: flex;
-          gap: 1.5rem;
-        }
-
-        .links a {
-          color: white;
-          text-decoration: none;
-          font-weight: 500;
-          position: relative;
-          transition: color 0.2s ease;
-        }
-
-        .links a:hover {
-          color: #E3FDA6;
-        }
-
-        .links a::after {
-          content: '';
-          position: absolute;
-          left: 0;
-          bottom: -4px;
-          width: 0%;
-          height: 2px;
-          background-color: #E3FDA6;
-          transition: width 0.3s ease;
-        }
-
-        .links a:hover::after {
-          width: 100%;
-        }
-
         .hamburger {
-          display: none;
-          flex-direction: column;
+          display: flex;
           justify-content: center;
-          gap: 4px;
+          align-items: center;
+          width: 40px;
+          height: 40px;
           cursor: pointer;
         }
 
-        .hamburger span {
+        .lines {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          gap: 5px;
+        }
+
+        .bar {
           width: 24px;
           height: 3px;
           background-color: white;
           border-radius: 2px;
         }
 
+        .close {
+          font-size: 1.8rem;
+          color: white;
+          line-height: 1;
+        }
+
         .dropdown {
           position: absolute;
           top: 100%;
           right: 2rem;
-          background: rgba(0, 0, 0, 0.95);
+          margin-top: 0.75rem;
           padding: 1.5rem;
-          border-radius: 12px;
-          box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+          border-radius: 16px;
+          background: rgba(0, 0, 0, 0.85); /* ← DARKER */
+          backdrop-filter: blur(20px);
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
           animation: slideDown 0.3s ease;
         }
 
@@ -120,6 +104,11 @@ export default function Nav() {
           font-weight: bold;
           text-decoration: none;
           margin-bottom: 1rem;
+          transition: color 0.2s ease;
+        }
+
+        .dropdown :global(a):hover {
+          color: #E3FDA6;
         }
 
         @keyframes slideDown {
@@ -130,15 +119,6 @@ export default function Nav() {
           to {
             opacity: 1;
             transform: translateY(0);
-          }
-        }
-
-        @media (max-width: 3000px) {
-          .links {
-            display: none;
-          }
-          .hamburger {
-            display: flex;
           }
         }
       `}</style>
