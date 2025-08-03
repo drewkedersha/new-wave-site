@@ -59,7 +59,7 @@ export default function RootLayout({ children }) {
         </Script>
         <Script id="meta-icons" strategy="beforeInteractive">
           {`
-            <link rel="icon" href="/favicon.ico" />
+            <link rel="icon" type="image/png" href="/favicon.png" />
             <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
             <link rel="manifest" href="/site.webmanifest" />
           `}
