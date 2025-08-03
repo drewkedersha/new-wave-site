@@ -1,11 +1,13 @@
+// src/lib/sanity.js
 import { createClient } from '@sanity/client'
 import imageUrlBuilder from '@sanity/image-url'
 
 export const sanity = createClient({
-  projectId: 'bvnhi2h5', // replace with your real project ID
+  projectId: 'bvnhi2h5',           // hardcoded
   dataset: 'production',
-  useCdn: false,
   apiVersion: '2024-06-30',
+  useCdn: false,
+  token: process.env.SANITY_TOKEN, // can stay dynamic
 })
 
 const builder = imageUrlBuilder(sanity)
