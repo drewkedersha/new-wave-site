@@ -207,7 +207,7 @@ export default function ArticlesPage() {
         {/* Newsletter Signup */}
         <div style={newsletterStyle} className="fade-up">
           <h2 style={{ color: 'white' }}>Want These in Your Inbox?</h2>
-          <p style={{ color: 'white' }}>Sign up for articles, updates, and music drops delivered straight to your inbox.</p>
+          <p style={{ color: 'white' }}>Sign up for articles, updates, and new music suggestions straight to your inbox.</p>
           <form action="https://newwavechristian.substack.com/subscribe" method="post" target="_blank" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '1rem' }}>
             <input
               type="email"

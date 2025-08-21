@@ -107,14 +107,15 @@ export default function PodcastPage() {
                   key={idx}
                   style={{
                     background: '#fff',
+                    color: '#000D24',
                     padding: '1.5rem',
                     borderRadius: '16px',
                     boxShadow: '0 6px 20px rgba(0,0,0,0.08)',
                     marginBottom: gridView ? '0' : '2rem',
                   }}
                 >
-                  <h2 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>{ep.title}</h2>
-                  <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '1rem' }}>
+                  <h2 style={{ color: '000D24', fontSize: '1.25rem', marginBottom: '0.5rem' }}>{ep.title}</h2>
+                  <p style={{ fontSize: '0.9rem', color: '#374151', marginBottom: '1rem' }}>
                     {new Date(ep.pubDate).toLocaleDateString()}
                   </p>
                   <p style={{ fontSize: '1rem', marginBottom: '1rem' }}>

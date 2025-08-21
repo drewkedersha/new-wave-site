@@ -1,31 +1,38 @@
-import { sanity } from '../../../lib/sanity';
+// src/app/articles/[slug]/page.js
+import Image from 'next/image';
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
+
 import Nav from '../../../components/Nav';
 import Footer from '../../../components/Footer';
 import ArticleBody from '../../../components/ArticleBody';
+import { sanity } from '../../../lib/sanity';
 import { urlFor } from '../../../lib/sanity';
-import Link from 'next/link';
-import Image from 'next/image';
-
-export async function generateStaticParams() {
-  const slugs = await sanity.fetch(`*[_type == "post"]{ "slug": slug.current }`);
-  return slugs.map((s) => ({ slug: s.slug }));
-}
 
 export default async function ArticlePage({ params }) {
+  // Fetch the post + suggested posts
   const { post, suggested } = await sanity.fetch(
     `{
       "post": *[_type == "post" && slug.current == $slug][0]{
+        _id,
         title,
         slug,
         excerpt,
         publishedAt,
         body,
         tags,
-        categories[]->{title},
+        categories[]->{ _id, title },
         coverImage,
-        author->{name, bio, image}
+        author->{ name, bio, image }
       },
-      "suggested": *[_type == "post" && slug.current != $slug] | order(publishedAt desc)[0...3]{
+      "suggested": *[
+        _type == "post"
+        && defined(slug.current)
+        && defined(publishedAt)
+        && !(_id in path("drafts.**"))
+        && slug.current != $slug
+        && count(categories[@._ref in *[_type == "post" && slug.current == $slug][0].categories[]._id]) > 0
+      ] | order(publishedAt desc)[0...3]{
         title,
         slug,
         publishedAt,
@@ -36,12 +43,15 @@ export default async function ArticlePage({ params }) {
     { slug: params.slug }
   );
 
-  if (!post) return <div style={{ padding: '2rem' }}>Post not found</div>;
+  if (!post) {
+    // Use Next.js notFound() so your /_not-found page shows
+    notFound();
+  }
 
   return (
     <>
       <Nav />
-        <div style={{ padding: '3rem 2rem', background: 'linear-gradient(to bottom right, #0B4BB7, #02E3A7, #E3FDA6)' }}>
+      <div style={{ padding: '3rem 2rem', background: 'linear-gradient(to bottom right, #0B4BB7, #02E3A7, #E3FDA6)' }}>
         <div
           style={{
             background: '#ffffff',
@@ -68,25 +78,25 @@ export default async function ArticlePage({ params }) {
                 marginBottom: '2rem',
               }}
               priority
-            /> 
-            )} 
-
+              unoptimized
+            />
+          )}
 
           {/* Metadata */}
           <div style={{ fontSize: '0.9rem', color: '#555', marginBottom: '1rem' }}>
             <span>
               By <strong>{post.author?.name}</strong> ·{' '}
-              {new Date(post.publishedAt).toLocaleDateString()} ·{' '}
+              {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString() : ''} ·{' '}
               {post.categories?.map((cat) => cat.title).join(', ')}
             </span>
           </div>
 
-          {/* Title */}
-          <h1 style={{ fontSize: '2.5rem', marginBottom: '1.5rem', color: '#000D24' }}>
+          {/* Title + Excerpt (force dark text) */}
+          <h1 style={{ fontSize: '2.5rem', marginBottom: '0.75rem', color: '#000D24' }}>
             {post.title}
           </h1>
 
-          {/* Article Body */}
+          {/* Article Body (PortableText with dark-safe styles) */}
           <ArticleBody content={post.body} />
 
           {/* Tags */}
@@ -102,6 +112,7 @@ export default async function ArticlePage({ params }) {
                     borderRadius: '8px',
                     padding: '0.25rem 0.75rem',
                     marginRight: '0.5rem',
+                    display: 'inline-block',
                   }}
                 >
                   #{tag}
@@ -129,8 +140,8 @@ export default async function ArticlePage({ params }) {
                   width={64}
                   height={64}
                   style={{ borderRadius: '50%' }}
+                  unoptimized
                 />
-
               )}
               <div>
                 <p style={{ fontWeight: 'bold', marginBottom: '0.25rem', color: '#000D24' }}>
@@ -156,7 +167,11 @@ export default async function ArticlePage({ params }) {
               }}
             >
               {suggested.map((item) => (
-                <Link href={`/articles/${item.slug.current}`} key={item.slug.current} style={{ textDecoration: 'none' }}>
+                <Link
+                  href={`/articles/${item.slug.current}`}
+                  key={item.slug.current}
+                  style={{ textDecoration: 'none' }}
+                >
                   <div
                     style={{
                       background: '#fff',
@@ -181,16 +196,19 @@ export default async function ArticlePage({ params }) {
                           objectFit: 'cover',
                           transition: 'transform 0.3s',
                         }}
+                        unoptimized
                       />
                     )}
                     <div style={{ padding: '1rem', flexGrow: 1 }}>
                       <p style={{ fontSize: '0.8rem', color: '#777' }}>
-                        {new Date(item.publishedAt).toLocaleDateString()}
+                        {item.publishedAt ? new Date(item.publishedAt).toLocaleDateString() : ''}
                       </p>
                       <h3 style={{ fontSize: '1.1rem', color: '#000D24', margin: '0.5rem 0' }}>
                         {item.title}
                       </h3>
-                      <p style={{ fontSize: '0.9rem', color: '#444' }}>{item.excerpt}</p>
+                      {item.excerpt && (
+                        <p style={{ fontSize: '0.9rem', color: '#444' }}>{item.excerpt}</p>
+                      )}
                     </div>
                   </div>
                 </Link>
@@ -199,6 +217,7 @@ export default async function ArticlePage({ params }) {
           </div>
         )}
       </div>
+
       <Footer />
     </>
   );

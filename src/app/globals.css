@@ -111,3 +111,21 @@ a {
     transform: translateY(0);
   }
 }
+
+/* Article / content area defaults */
+.article-content h1,
+.article-content h2,
+.article-content h3,
+.article-content h4 {
+  color: #000D24;
+}
+
+.article-content p,
+.article-content li,
+.article-content blockquote {
+  color: #1f2937; /* slate-800 */
+}
+
+/* In case anything inherits white by accident */
+.article-content a { color: #0B4BB7; }
+.article-content strong { color: #000D24; }

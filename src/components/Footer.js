@@ -29,7 +29,7 @@ export default function Footer() {
             <a href="https://tiktok.com/@newwavechristian" target="_blank" rel="noopener noreferrer" style={{ marginRight: '0.75rem' }}>
               <Image src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/tiktok.svg" alt="TikTok" width={20} height={20} style={{ filter: 'invert(1)' }} />
             </a>
-            <a href="https://spotify.linktr.ee/newwavechristian" target="_blank" rel="noopener noreferrer">
+            <a href="https://open.spotify.com/user/31g36r36va3cbwxro2o3drcnvtky?si=f4256c4277384599" target="_blank" rel="noopener noreferrer">
               <Image src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/spotify.svg" alt="Spotify" width={20} height={20} style={{ filter: 'invert(1)' }} />
             </a>
           </div>
@@ -44,7 +44,7 @@ export default function Footer() {
             maxWidth: '400px',
           }}>
             <p style={{ fontSize: '0.9rem', marginBottom: '0.5rem' }}>
-              Sign up for future newsletters & early drops
+              Sign up for future newsletters & important updates
             </p>
             <form action="https://newwavechristian.substack.com/subscribe" method="post" target="_blank" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
               <input
