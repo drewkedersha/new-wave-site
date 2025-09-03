@@ -61,7 +61,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
-        {/* GA4 loader (uses env var) */}
+        {/* GA4 loader via env var */}
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`}
           strategy="afterInteractive"
@@ -80,7 +80,7 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        {/* Tracks client-side route changes + events */}
+        {/* If you added these earlier, keep them */}
         <GAListener />
         <GAEvents />
         {children}
