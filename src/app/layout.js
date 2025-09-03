@@ -52,6 +52,9 @@ export const metadata = {
   },
   // Optional but nice: link your web app manifest
   manifest: "/site.webmanifest",
+  alternates: {
+    canonical: "https://www.newwavechristian.org",
+  },
 };
 
 export default function RootLayout({ children }) {
