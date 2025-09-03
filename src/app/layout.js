@@ -1,8 +1,9 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Script from "next/script";
-import GAListener from "./ga-listener";
-import GAEvents from "./ga-events";
+import dynamic from "next/dynamic";
+const GAListener = dynamic(() => import("./ga-listener"), { ssr: false });
+const GAEvents  = dynamic(() => import("./ga-events"),  { ssr: false });
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
