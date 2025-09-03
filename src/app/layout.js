@@ -39,12 +39,26 @@ export const metadata = {
     description: "Faith-fueled music and meaningful creativity.",
     images: ["/og-image.png"],
   },
+  // ✅ Register all icons here (cache-busted with ?v=10)
+  icons: {
+    icon: [
+      { url: "/favicon-16x16.png?v=10", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32x32.png?v=10", sizes: "32x32", type: "image/png" },
+      { url: "/favicon.ico?v=10" }, // multi-size .ico
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png?v=10", sizes: "180x180", type: "image/png" },
+    ],
+  },
+  // Optional but nice: link your web app manifest
+  manifest: "/site.webmanifest",
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
+        {/* GA4 */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-2J5PW3JFHH"
           strategy="afterInteractive"
@@ -54,13 +68,7 @@ export default function RootLayout({ children }) {
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            gtag('config', 'G-2J5PW3JFHH');
-          `}
-        </Script>
-        <Script id="meta-icons" strategy="beforeInteractive">
-          {`
-            <link rel="icon" href="/favicon.png?v=6" type="image/png" />
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=6" />
+            gtag('config', 'G-2J5PW3JFHH', { anonymize_ip: true });
           `}
         </Script>
       </head>
