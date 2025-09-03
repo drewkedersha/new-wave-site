@@ -179,20 +179,6 @@ export default async function ArticlePage({ params }) {
             {post.title}
           </h1>
 
-          {/* Optional excerpt just under title if you ever want it visible */}
-          {post.excerpt && (
-            <p
-              style={{
-                margin: '0 0 1rem',
-                color: '#334155',
-                fontSize: '1rem',
-                lineHeight: 1.6,
-              }}
-            >
-              {post.excerpt}
-            </p>
-          )}
-
           {/* Article Body */}
           <ArticleBody content={post.body} />
 
