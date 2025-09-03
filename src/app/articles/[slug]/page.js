@@ -2,6 +2,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import Script from 'next/script';
 
 import Nav from '../../../components/Nav';
 import Footer from '../../../components/Footer';
@@ -71,10 +72,34 @@ export default async function ArticlePage({ params }) {
     notFound();
   }
 
-  const suggested = (suggestedPrimary?.length ? suggestedPrimary : suggestedFallback || []).slice(0, 3);
+  const suggested =
+    (suggestedPrimary?.length ? suggestedPrimary : suggestedFallback || []).slice(0, 3);
+
+  // ---- JSON-LD Article schema (SEO) ----
+  const canonicalUrl = `https://www.newwavechristian.org/articles/${post.slug?.current}`;
+  const ogImage =
+    post.coverImage ? urlFor(post.coverImage).width(1200).height(630).url() : undefined;
+
+  const ld = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: post.title,
+    datePublished: post.publishedAt || undefined,
+    author: post.author?.name ? { '@type': 'Person', name: post.author.name } : undefined,
+    image: ogImage ? [ogImage] : undefined,
+    publisher: { '@type': 'Organization', name: 'The New Wave' },
+    mainEntityOfPage: canonicalUrl,
+  };
 
   return (
     <>
+      {/* JSON-LD goes in head via Next Script */}
+      <Script
+        id="article-ld"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(ld) }}
+      />
+
       <Nav />
 
       <div
@@ -103,7 +128,7 @@ export default async function ArticlePage({ params }) {
                 aspectRatio: '16 / 9',
                 borderRadius: '16px',
                 overflow: 'hidden',
-                marginBottom: '1.25rem',
+                marginBottom: '1rem',
               }}
             >
               <Image
@@ -119,14 +144,25 @@ export default async function ArticlePage({ params }) {
           )}
 
           {/* Metadata */}
-          <div style={{ fontSize: '0.9rem', color: '#555', marginBottom: '0.75rem' }}>
-            <span>
-              {post.author?.name ? <>By <strong>{post.author.name}</strong> · </> : null}
-              {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString() : ''}
-              {post.categories?.length ? (
-                <> · {post.categories.map((cat) => cat.title).join(', ')}</>
-              ) : null}
-            </span>
+          <div
+            style={{
+              fontSize: '0.9rem',
+              color: '#555',
+              marginBottom: '0.75rem',
+              display: 'flex',
+              gap: '.5rem',
+              flexWrap: 'wrap',
+            }}
+          >
+            {post.author?.name && (
+              <span>
+                By <strong>{post.author.name}</strong>
+              </span>
+            )}
+            {post.publishedAt && <span>· {new Date(post.publishedAt).toLocaleDateString()}</span>}
+            {post.categories?.length ? (
+              <span>· {post.categories.map((cat) => cat.title).join(', ')}</span>
+            ) : null}
           </div>
 
           {/* Title (responsive, no overflow on mobile) */}
@@ -134,7 +170,7 @@ export default async function ArticlePage({ params }) {
             style={{
               fontSize: 'clamp(1.6rem, 3.2vw + 1rem, 2.2rem)',
               lineHeight: 1.15,
-              marginBottom: '0.75rem',
+              margin: '0 0 0.75rem',
               color: '#000D24',
               wordWrap: 'break-word',
               overflowWrap: 'anywhere',
@@ -142,7 +178,22 @@ export default async function ArticlePage({ params }) {
           >
             {post.title}
           </h1>
-          {/* Body */}
+
+          {/* Optional excerpt just under title if you ever want it visible */}
+          {post.excerpt && (
+            <p
+              style={{
+                margin: '0 0 1rem',
+                color: '#334155',
+                fontSize: '1rem',
+                lineHeight: 1.6,
+              }}
+            >
+              {post.excerpt}
+            </p>
+          )}
+
+          {/* Article Body */}
           <ArticleBody content={post.body} />
 
           {/* Tags */}
@@ -263,4 +314,39 @@ export default async function ArticlePage({ params }) {
       <Footer />
     </>
   );
+}
+
+// Page-level metadata for SEO/social
+export async function generateMetadata({ params }) {
+  const data = await sanity.fetch(
+    `*[_type=="post" && slug.current==$slug][0]{ title, excerpt, "slug": slug.current, coverImage }`,
+    { slug: params.slug }
+  );
+
+  if (!data) return {};
+
+  const url = `https://www.newwavechristian.org/articles/${data.slug}`;
+  const ogImage = data.coverImage
+    ? urlFor(data.coverImage).width(1200).height(630).url()
+    : '/og-image.png';
+
+  return {
+    title: data.title,
+    description: data.excerpt,
+    alternates: { canonical: url },
+    openGraph: {
+      title: data.title,
+      description: data.excerpt,
+      url,
+      type: 'article',
+      images: [{ url: ogImage, width: 1200, height: 630 }],
+      siteName: 'The New Wave',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: data.title,
+      description: data.excerpt,
+      images: [ogImage],
+    },
+  };
 }
