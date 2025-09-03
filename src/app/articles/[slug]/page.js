@@ -9,11 +9,18 @@ import ArticleBody from '../../../components/ArticleBody';
 import { sanity } from '../../../lib/sanity';
 import { urlFor } from '../../../lib/sanity';
 
+// Revalidate occasionally so published posts show up
+export const revalidate = 600;
+
 export default async function ArticlePage({ params }) {
-  // Fetch the post + suggested posts
-  const { post, suggested } = await sanity.fetch(
+  // Fetch the post + suggested (exclude drafts/empties; prefer same-category but fall back if none)
+  const { post, suggestedPrimary, suggestedFallback } = await sanity.fetch(
     `{
-      "post": *[_type == "post" && slug.current == $slug][0]{
+      "post": *[
+        _type == "post" &&
+        slug.current == $slug &&
+        !(_id in path("drafts.**"))
+      ][0]{
         _id,
         title,
         slug,
@@ -25,14 +32,31 @@ export default async function ArticlePage({ params }) {
         coverImage,
         author->{ name, bio, image }
       },
-      "suggested": *[
-        _type == "post"
-        && defined(slug.current)
-        && defined(publishedAt)
-        && !(_id in path("drafts.**"))
-        && slug.current != $slug
-        && count(categories[@._ref in *[_type == "post" && slug.current == $slug][0].categories[]._id]) > 0
-      ] | order(publishedAt desc)[0...3]{
+
+      // Same-category suggestions
+      "suggestedPrimary": *[
+        _type == "post" &&
+        defined(slug.current) &&
+        defined(publishedAt) &&
+        !(_id in path("drafts.**")) &&
+        slug.current != $slug &&
+        count(categories[@._ref in *[_type == "post" && slug.current == $slug][0].categories[]._id]) > 0
+      ] | order(publishedAt desc)[0...6]{
+        title,
+        slug,
+        publishedAt,
+        excerpt,
+        coverImage
+      },
+
+      // Fallback suggestions if no category overlap
+      "suggestedFallback": *[
+        _type == "post" &&
+        defined(slug.current) &&
+        defined(publishedAt) &&
+        !(_id in path("drafts.**")) &&
+        slug.current != $slug
+      ] | order(publishedAt desc)[0...6]{
         title,
         slug,
         publishedAt,
@@ -44,64 +68,100 @@ export default async function ArticlePage({ params }) {
   );
 
   if (!post) {
-    // Use Next.js notFound() so your /_not-found page shows
     notFound();
   }
+
+  const suggested = (suggestedPrimary?.length ? suggestedPrimary : suggestedFallback || []).slice(0, 3);
 
   return (
     <>
       <Nav />
-      <div style={{ padding: '3rem 2rem', background: 'linear-gradient(to bottom right, #0B4BB7, #02E3A7, #E3FDA6)' }}>
+
+      <div
+        style={{
+          padding: '3rem 1rem',
+          background: 'linear-gradient(to bottom right, #0B4BB7, #02E3A7, #E3FDA6)',
+        }}
+      >
         <div
           style={{
             background: '#ffffff',
             borderRadius: '20px',
-            padding: '3rem',
+            padding: 'clamp(1.25rem, 2vw, 3rem)',
             maxWidth: '860px',
             margin: '0 auto',
             boxShadow: '0 8px 30px rgba(0,0,0,0.05)',
-            lineHeight: '1.7',
+            lineHeight: 1.7,
           }}
         >
-          {/* Cover Image */}
+          {/* Cover Image: fixed aspect ratio so text on the image stays readable */}
           {post.coverImage && (
-            <Image
-              src={urlFor(post.coverImage).width(1200).url()}
-              alt="Post Cover"
-              width={1200}
-              height={600}
+            <div
               style={{
-                borderRadius: '16px',
+                position: 'relative',
                 width: '100%',
-                maxHeight: '480px',
-                objectFit: 'cover',
-                marginBottom: '2rem',
+                aspectRatio: '16 / 9',
+                borderRadius: '16px',
+                overflow: 'hidden',
+                marginBottom: '1.25rem',
               }}
-              priority
-              unoptimized
-            />
+            >
+              <Image
+                src={urlFor(post.coverImage).width(1600).url()}
+                alt="Post Cover"
+                fill
+                sizes="(max-width: 900px) 100vw, 900px"
+                style={{ objectFit: 'cover' }}
+                priority
+                unoptimized
+              />
+            </div>
           )}
 
           {/* Metadata */}
-          <div style={{ fontSize: '0.9rem', color: '#555', marginBottom: '1rem' }}>
+          <div style={{ fontSize: '0.9rem', color: '#555', marginBottom: '0.75rem' }}>
             <span>
-              By <strong>{post.author?.name}</strong> ·{' '}
-              {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString() : ''} ·{' '}
-              {post.categories?.map((cat) => cat.title).join(', ')}
+              {post.author?.name ? <>By <strong>{post.author.name}</strong> · </> : null}
+              {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString() : ''}
+              {post.categories?.length ? (
+                <> · {post.categories.map((cat) => cat.title).join(', ')}</>
+              ) : null}
             </span>
           </div>
 
-          {/* Title + Excerpt (force dark text) */}
-          <h1 style={{ fontSize: '2.5rem', marginBottom: '0.75rem', color: '#000D24' }}>
+          {/* Title (responsive, no overflow on mobile) */}
+          <h1
+            style={{
+              fontSize: 'clamp(1.6rem, 3.2vw + 1rem, 2.2rem)',
+              lineHeight: 1.15,
+              marginBottom: '0.75rem',
+              color: '#000D24',
+              wordWrap: 'break-word',
+              overflowWrap: 'anywhere',
+            }}
+          >
             {post.title}
           </h1>
 
-          {/* Article Body (PortableText with dark-safe styles) */}
+          {/* Optional excerpt under title */}
+          {post.excerpt && (
+            <p
+              style={{
+                fontSize: 'clamp(1rem, 0.8vw + 0.8rem, 1.125rem)',
+                color: '#333',
+                marginBottom: '1.25rem',
+              }}
+            >
+              {post.excerpt}
+            </p>
+          )}
+
+          {/* Body */}
           <ArticleBody content={post.body} />
 
           {/* Tags */}
-          {post.tags && post.tags.length > 0 && (
-            <div style={{ marginTop: '2rem', fontSize: '0.9rem' }}>
+          {post.tags?.length > 0 && (
+            <div style={{ marginTop: '1.75rem', fontSize: '0.9rem' }}>
               <strong>Tags:</strong>{' '}
               {post.tags.map((tag) => (
                 <span
@@ -121,13 +181,13 @@ export default async function ArticlePage({ params }) {
             </div>
           )}
 
-          {/* Author Block */}
+          {/* Author */}
           {post.author?.bio && (
             <div
               style={{
-                marginTop: '3rem',
+                marginTop: '2rem',
                 borderTop: '1px solid #ddd',
-                paddingTop: '2rem',
+                paddingTop: '1.25rem',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '1rem',
@@ -135,7 +195,7 @@ export default async function ArticlePage({ params }) {
             >
               {post.author.image && (
                 <Image
-                  src={urlFor(post.author.image).width(64).height(64).url()}
+                  src={urlFor(post.author.image).width(128).height(128).url()}
                   alt={post.author.name}
                   width={64}
                   height={64}
@@ -144,7 +204,7 @@ export default async function ArticlePage({ params }) {
                 />
               )}
               <div>
-                <p style={{ fontWeight: 'bold', marginBottom: '0.25rem', color: '#000D24' }}>
+                <p style={{ fontWeight: 700, marginBottom: '0.25rem', color: '#000D24' }}>
                   {post.author.name}
                 </p>
                 <ArticleBody content={post.author.bio} />
@@ -153,17 +213,17 @@ export default async function ArticlePage({ params }) {
           )}
         </div>
 
-        {/* Suggested Articles */}
-        {suggested && suggested.length > 0 && (
+        {/* Suggested */}
+        {suggested.length > 0 && (
           <div style={{ marginTop: '5rem', maxWidth: '960px', marginInline: 'auto' }}>
-            <h2 style={{ fontSize: '1.8rem', marginBottom: '1.5rem', color: '#000D24' }}>
+            <h2 style={{ fontSize: '1.6rem', marginBottom: '1.25rem', color: '#000D24' }}>
               You Might Also Like
             </h2>
             <div
               style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                gap: '1.75rem',
+                gap: '1.5rem',
               }}
             >
               {suggested.map((item) => (
@@ -177,30 +237,26 @@ export default async function ArticlePage({ params }) {
                       background: '#fff',
                       borderRadius: '16px',
                       boxShadow: '0 8px 20px rgba(0,0,0,0.05)',
-                      transition: 'all 0.2s ease-in-out',
                       overflow: 'hidden',
-                      height: '100%',
                       display: 'flex',
                       flexDirection: 'column',
+                      height: '100%',
                     }}
                   >
                     {item.coverImage && (
-                      <Image
-                        src={urlFor(item.coverImage).width(800).height(400).url()}
-                        alt={item.title}
-                        width={800}
-                        height={400}
-                        style={{
-                          width: '100%',
-                          height: '180px',
-                          objectFit: 'cover',
-                          transition: 'transform 0.3s',
-                        }}
-                        unoptimized
-                      />
+                      <div style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9' }}>
+                        <Image
+                          src={urlFor(item.coverImage).width(800).height(450).url()}
+                          alt={item.title}
+                          fill
+                          sizes="(max-width: 900px) 100vw, 400px"
+                          style={{ objectFit: 'cover' }}
+                          unoptimized
+                        />
+                      </div>
                     )}
                     <div style={{ padding: '1rem', flexGrow: 1 }}>
-                      <p style={{ fontSize: '0.8rem', color: '#777' }}>
+                      <p style={{ fontSize: '0.8rem', color: '#777', marginBottom: '0.4rem' }}>
                         {item.publishedAt ? new Date(item.publishedAt).toLocaleDateString() : ''}
                       </p>
                       <h3 style={{ fontSize: '1.1rem', color: '#000D24', margin: '0.5rem 0' }}>
