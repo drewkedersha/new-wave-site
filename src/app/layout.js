@@ -6,6 +6,7 @@ import Script from "next/script";
 // ✅ import client components directly (no next/dynamic here)
 import GAListener from "./ga-listener";
 import GAEvents from "./ga-events";
+import ArticleClickTracker from "./components/ArticleClickTracker";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
@@ -72,6 +73,9 @@ export default function RootLayout({ children }) {
         <GAEvents />
 
         {children}
+
+         <ArticleClickTracker />
+         {children}
       </body>
     </html>
   );
