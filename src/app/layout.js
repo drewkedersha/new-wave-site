@@ -71,11 +71,8 @@ export default function RootLayout({ children }) {
         {/* SPA tracking */}
         <GAListener />
         <GAEvents />
-
+        <ArticleClickTracker />
         {children}
-
-         <ArticleClickTracker />
-         {children}
       </body>
     </html>
   );
