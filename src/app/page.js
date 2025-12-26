@@ -57,7 +57,7 @@ export default function HomePage() {
               margin: '0 auto',
             }}
           >
-            {[{ name: 'Articles', href: '/articles' }, { name: 'Podcast', href: '/podcast' }, { name: 'Instagram', href: 'https://instagram.com/newwavechristian' }, { name: 'Playlists', href: 'https://open.spotify.com/user/31g36r36va3cbwxro2o3drcnvtky?si=1e892db4b9d84e81' }].map((link) => (
+            {[{ name: 'Articles', href: '/articles' }, { name: 'Podcast', href: '/podcast' }, { name: 'Instagram', href: 'https://instagram.com/newwavechristian' }].map((link) => (
               <a
                 key={link.name}
                 href={link.href}
