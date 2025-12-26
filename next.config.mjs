@@ -8,7 +8,13 @@ const nextConfig = {
   },
 
   async redirects() {
-    return [ ];
+    return [
+      {
+        source: "/articles/Daniel-ceasar-son-of-spergy",
+        destination: "/articles/daniel-ceasar-son-of-spergy",
+        permanent: true,
+      },
+     ];
   },
 };
 
