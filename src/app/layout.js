@@ -39,6 +39,10 @@ export const metadata = {
   },
   manifest: "/site.webmanifest",
   alternates: { canonical: "https://www.newwavechristian.org" },
+
+  other: {
+    "google-adsense-account": "ca-pub-8311497106135010",
+  },
 };
 
 export default function RootLayout({ children }) {
