@@ -50,14 +50,13 @@ export default function RootLayout({ children }) {
       <head>
         {/* AdSense (loads once per app) */}
         {adsenseClient && (
-          <Script
-            id="adsense"
-            async
-            strategy="afterInteractive"
-            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClient}`}
-            crossOrigin="anonymous"
-          />
-        )}
+  <script
+    async
+    src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClient}`}
+    crossOrigin="anonymous"
+  />
+)}
+
       </head>
 
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
