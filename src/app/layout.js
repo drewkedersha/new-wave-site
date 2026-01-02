@@ -3,7 +3,6 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Script from "next/script";
 
-// ✅ import client components directly (no next/dynamic here)
 import GAListener from "./ga-listener";
 import GAEvents from "./ga-events";
 import ArticleClickTracker from "../components/ArticleClickTracker";
@@ -43,16 +42,32 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
-  const gaId = process.env.NEXT_PUBLIC_GA_ID; // optional: to guard Script includes
+  const gaId = process.env.NEXT_PUBLIC_GA_ID;
+  const adsenseClient = process.env.NEXT_PUBLIC_ADSENSE_CLIENT;
 
   return (
     <html lang="en">
-      <head />
+      <head>
+        {/* AdSense (loads once per app) */}
+        {adsenseClient && (
+          <Script
+            id="adsense"
+            async
+            strategy="afterInteractive"
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClient}`}
+            crossOrigin="anonymous"
+          />
+        )}
+      </head>
+
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         {/* GA4 via env var (loads once per app) */}
         {gaId && (
           <>
-            <Script src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`} strategy="afterInteractive" />
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
+              strategy="afterInteractive"
+            />
             <Script
               id="ga4"
               strategy="afterInteractive"
@@ -72,6 +87,7 @@ export default function RootLayout({ children }) {
         <GAListener />
         <GAEvents />
         <ArticleClickTracker />
+
         {children}
       </body>
     </html>
